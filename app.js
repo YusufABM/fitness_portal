@@ -24,6 +24,6 @@ function rootHandler(request, response) {
 }
 
 app.listen(port, () => {
-  console.log(`Simple static TODO server running on port ${port}`)
+  console.log(`Vilhelm Kiers Motionsrum page is running on ${port}`)
 })
 
