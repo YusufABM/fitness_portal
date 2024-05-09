@@ -3,12 +3,30 @@ const path = require('path')
 const express = require('express')
 const app = express()
 const port = 8080
+const mqtt = require('mqtt');
+
+let latestMessage = "";
 
 //let clientDir = path.join(__dirname, 'public')
 let staticDir = path.join(__dirname,'public')
 
-
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 app.use(express.static(staticDir))
+
+// Connect to the MQTT broker and subscribe to the topic
+const client  = mqtt.connect('tcp://test.mosquitto.org:1883');
+client.on('connect', function () {
+  client.subscribe('/doorTrigger', function (err) {
+    if (err) console.error(err);
+  });
+});
+
+// When a message is received, update the latestReading variable
+client.on('message', function (topic, message) {
+  latestMessage = message.toString();
+});
+
 
 //app root
 app.get('/', rootHandler)
@@ -27,3 +45,7 @@ app.listen(port, () => {
   console.log(`Vilhelm Kiers Motionsrum page is running on ${port}`)
 })
 
+// Send the latest reading to the client
+app.get('/latest', function (req, res) {
+  res.send(latestMessage);
+});

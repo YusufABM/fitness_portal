@@ -5,6 +5,22 @@
 * Author: BootstrapMade.com
 * License: https://bootstrapmade.com/license/
 */
+function updateReading() {
+  fetch('/latest')
+    .then(response => response.text())
+    .then(data => {
+      // Parse the MQTT message
+      const lines = data.split('\n');
+      const count = lines[0].split(': ')[1];
+      const time = lines[1].split(': ')[1];
+
+      // Update the HTML elements
+      document.getElementById('mqttReading').textContent = count;
+      document.getElementById('lastUpdated').textContent = 'LAST UPDATED: ' + time;
+    });
+}
+// Update the reading every second
+setInterval(updateReading, 1000);
 
 (function() {
   "use strict";
@@ -33,7 +49,7 @@
   }
 
   /**
-   * Easy on scroll event listener 
+   * Easy on scroll event listener
    */
   const onscroll = (el, listener) => {
     el.addEventListener('scroll', listener)
