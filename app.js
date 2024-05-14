@@ -6,7 +6,7 @@ const port = 8080
 const mqtt = require('mqtt');
 const { get } = require('http');
 const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('.data.db');
+const db = new sqlite3.Database('data/.data.db');
 let latestMessage = " ";
 
 
@@ -149,7 +149,7 @@ app.get('/tuesday', function (req, res) {
 
 //Get data for wednesday database entries
 app.get('/wednesday', function (req, res) {
-  db.all('SELECT * FROM readings WHERE day = "Wed" ORDER BY timestamp DESC', function(err, rows) {
+  db.all('SELECT * FROM readings WHERE day = "Wednesday" ORDER BY timestamp DESC', function(err, rows) {
       if (err) {
           console.error('Error getting readings from database:', err);
           res.status(500).send('Error getting readings from database');
@@ -161,7 +161,7 @@ app.get('/wednesday', function (req, res) {
 
 //Get data for thursday database entries
 app.get('/thursday', function (req, res) {
-  db.all('SELECT * FROM readings WHERE day = "Thu" ORDER BY timestamp DESC', function(err, rows) {
+  db.all('SELECT * FROM readings WHERE day = "Thursday" ORDER BY timestamp DESC', function(err, rows) {
       if (err) {
           console.error('Error getting readings from database:', err);
           res.status(500).send('Error getting readings from database');
@@ -173,7 +173,7 @@ app.get('/thursday', function (req, res) {
 
 //Get data for friday database entries
 app.get('/friday', function (req, res) {
-  db.all('SELECT * FROM readings WHERE day = "Fri" ORDER BY timestamp DESC', function(err, rows) {
+  db.all('SELECT * FROM readings WHERE day = "Friday" ORDER BY timestamp DESC', function(err, rows) {
       if (err) {
           console.error('Error getting readings from database:', err);
           res.status(500).send('Error getting readings from database');
@@ -185,7 +185,7 @@ app.get('/friday', function (req, res) {
 
 //Get data for saturday database entries
 app.get('/saturday', function (req, res) {
-  db.all('SELECT * FROM readings WHERE day = "Sat" ORDER BY timestamp DESC', function(err, rows) {
+  db.all('SELECT * FROM readings WHERE day = "Saturday" ORDER BY timestamp DESC', function(err, rows) {
       if (err) {
           console.error('Error getting readings from database:', err);
           res.status(500).send('Error getting readings from database');
@@ -197,7 +197,7 @@ app.get('/saturday', function (req, res) {
 
 //Get data for sunday database entries
 app.get('/sunday', function (req, res) {
-  db.all('SELECT * FROM readings WHERE day = "Sun" ORDER BY timestamp DESC', function(err, rows) {
+  db.all('SELECT * FROM readings WHERE day = "Sunday" ORDER BY timestamp DESC', function(err, rows) {
       if (err) {
           console.error('Error getting readings from database:', err);
           res.status(500).send('Error getting readings from database');
