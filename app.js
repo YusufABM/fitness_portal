@@ -64,14 +64,14 @@ client.on('message', function (topic, message) {
     insertData();
   }
 
-  // Get the latest reading from the database
+  /*/ Get the latest reading from the database
   db.get('SELECT * FROM readings ORDER BY timestamp DESC LIMIT 1', function(err, row) {
       if (err) {
           console.error('Error getting latest reading from database:', err);
       } else {
           console.log('Latest reading:', row);
       }
-  });
+  });*/
 });
 
 // Insert data into the database
@@ -81,7 +81,6 @@ function insertData() {
             if (err) {
                 console.error('Error inserting data into database:', err);
             } else {
-                console.log('Data inserted into database successfully');
                 lastCount = count;
             }
         });
