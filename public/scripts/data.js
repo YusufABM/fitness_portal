@@ -29,7 +29,6 @@ function getDataFromDatabase() {
   for (let i = 0; i < totalDataPoints; i++) {
     const time = new Date(currentTime.getTime() - i * 1000 * 60 * 60 / dataPointsPerHour);
     const count = Math.floor(Math.random() * (maxCount - minCount + 1) + minCount);
-    console.log(time, count);
 
     chartData.unshift({
       x: time,
@@ -98,5 +97,5 @@ function getDataFromDatabase() {
 updateReading();
 getDataFromDatabase();
 
-// Update the reading every 2 second
+// Update the reading every 5 second
 setInterval(updateReading, 5000);

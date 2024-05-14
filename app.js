@@ -48,7 +48,6 @@ client.on('message', function (topic, message) {
   var messageString = message.toString();
 
   // Parse the message to extract count, day, date, and time
-  count = parseInt(messageString.match(/Count: (\d+)/)[1]);
   timeMatch = messageString.match(/Time: (\w+), (\d{2}).(\d{2}).(\d{2}), (\d{2}):(\d{2}):(\d{2})/);
   dayOfWeek = timeMatch[1];
   date = `${timeMatch[2]}.${timeMatch[3]}.${timeMatch[4]}`;
@@ -57,10 +56,11 @@ client.on('message', function (topic, message) {
   second = timeMatch[7];
   timestamp = new Date(`20${timeMatch[4]}-${timeMatch[2]}-${timeMatch[3]}T${hour}:${minute}:${second}Z`);
   time = `${hour}:${minute}`;
-  count = parseInt(messageString.match(/Count: (\d+)/)[1]);
+  check = messageString.match(/Count: (\d+)/,);
+  count = parseInt(check[1] || 0);
 
-  // Insert data into the database if the count has changed or if the last reading was more than 45 min ago
-  if (count != lastCount || (timestamp.getTime() - lastTimestamp.getTime()) > (2700000)) {
+  // Insert data into the database if the count has changed or if the last reading was more than 30 min ago
+  if (count != lastCount || (timestamp.getTime() - lastTimestamp.getTime()) > (1800000)) {
     insertData();
   }
 
@@ -82,6 +82,7 @@ function insertData() {
                 console.error('Error inserting data into database:', err);
             } else {
                 lastCount = count;
+                console.log('Data inserted into database:', count, dayOfWeek, timestamp);
             }
         });
     }
