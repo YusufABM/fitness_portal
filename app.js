@@ -4,6 +4,7 @@ const express = require('express')
 const app = express()
 const port = 8080
 const mqtt = require('mqtt');
+const { get } = require('http');
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('.data.db');
 let latestMessage = " ";
@@ -14,12 +15,15 @@ let staticDir = path.join(__dirname,'public')
 
 //Time variables
 var count = " "
+var lastCount = " "
 var timeMatch = " "
 var dayOfWeek = " "
 var date = " "
 var hour = " "
 var minute = " "
 var timestamp = " "
+var lastTimestamp = new Date(`2024-05-11T22:22:00Z`);
+
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
@@ -27,7 +31,7 @@ app.use(express.static(staticDir))
 
 // Ensure database is created and table is initialized
 db.serialize(() => {
-  db.run('CREATE TABLE IF NOT EXISTS readings ( count INTEGER, day TEXT, timestamp TEXT)');
+  db.run('CREATE TABLE IF NOT EXISTS readings (count INTEGER, day TEXT, timestamp TEXT)');
 });
 
 // Connect to the MQTT broker and subscribe to the topic
@@ -45,25 +49,43 @@ client.on('message', function (topic, message) {
 
   // Parse the message to extract count, day, date, and time
   count = parseInt(messageString.match(/Count: (\d+)/)[1]);
-  timeMatch = messageString.match(/Time: (\w+), (\d{2}).(\d{2}).(\d{2}), (\d{2}):(\d{2})/);
+  timeMatch = messageString.match(/Time: (\w+), (\d{2}).(\d{2}).(\d{2}), (\d{2}):(\d{2}):(\d{2})/);
   dayOfWeek = timeMatch[1];
   date = `${timeMatch[2]}.${timeMatch[3]}.${timeMatch[4]}`;
   hour = timeMatch[5];
   minute = timeMatch[6];
-  timestamp = new Date(`20${timeMatch[4]}-${timeMatch[3]}-${timeMatch[2]}T${hour}:${minute}`);
+  second = timeMatch[7];
+  timestamp = new Date(`20${timeMatch[4]}-${timeMatch[2]}-${timeMatch[3]}T${hour}:${minute}:${second}Z`);
   time = `${hour}:${minute}`;
+  count = parseInt(messageString.match(/Count: (\d+)/)[1]);
 
-  console.log( "Parser "+ count, dayOfWeek, date, timestamp);
+  // Insert data into the database if the count has changed or if the last reading was more than 45 min ago
+  if (count != lastCount || (timestamp.getTime() - lastTimestamp.getTime()) > (2700000)) {
+    insertData();
+  }
 
-  // Insert data into the database
-  db.run('INSERT INTO readings (count, day, date, timestamp) VALUES (?, ?, ?, ?)', [count, dayOfWeek, date, timestamp.toISOString()], function(err) {
+  // Get the latest reading from the database
+  db.get('SELECT * FROM readings ORDER BY timestamp DESC LIMIT 1', function(err, row) {
       if (err) {
-          console.error('Error inserting data into database:', err);
+          console.error('Error getting latest reading from database:', err);
       } else {
-          console.log('Data inserted into database successfully');
+          console.log('Latest reading:', row);
       }
   });
 });
+
+// Insert data into the database
+function insertData() {
+        lastTimestamp = timestamp;
+        db.run('INSERT INTO readings (count, day, timestamp) VALUES (?, ?, ?)', [count, dayOfWeek, timestamp.toISOString()], function(err) {
+            if (err) {
+                console.error('Error inserting data into database:', err);
+            } else {
+                console.log('Data inserted into database successfully');
+                lastCount = count;
+            }
+        });
+    }
 
 
 
@@ -90,5 +112,98 @@ app.get('/latest', function (req, res) {
   res.send(latestMessage);
 });
 
-// Save the latest reading to the database
+app.get('/database', function (req, res) {
+  db.all('SELECT * FROM readings ORDER BY timestamp DESC', function(err, rows) {
+      if (err) {
+          console.error('Error getting readings from database:', err);
+          res.status(500).send('Error getting readings from database');
+      }
+      res.json(rows);
+  }
+  );
+});
+
+//Get data for monday database entries
+app.get('/monday', function (req, res) {
+  db.all('SELECT * FROM readings WHERE day = "Monday" ORDER BY timestamp DESC', function(err, rows) {
+      if (err) {
+          console.error('Error getting readings from database:', err);
+          res.status(500).send('Error getting readings from database');
+      }
+      res.json(rows);
+  }
+  );
+});
+
+//Get data for tuesday database entries
+app.get('/tuesday', function (req, res) {
+  db.all('SELECT * FROM readings WHERE day = "Tuesday" ORDER BY timestamp DESC', function(err, rows) {
+      if (err) {
+          console.error('Error getting readings from database:', err);
+          res.status(500).send('Error getting readings from database');
+      }
+      res.json(rows);
+  }
+  );
+});
+
+//Get data for wednesday database entries
+app.get('/wednesday', function (req, res) {
+  db.all('SELECT * FROM readings WHERE day = "Wed" ORDER BY timestamp DESC', function(err, rows) {
+      if (err) {
+          console.error('Error getting readings from database:', err);
+          res.status(500).send('Error getting readings from database');
+      }
+      res.json(rows);
+  }
+  );
+});
+
+//Get data for thursday database entries
+app.get('/thursday', function (req, res) {
+  db.all('SELECT * FROM readings WHERE day = "Thu" ORDER BY timestamp DESC', function(err, rows) {
+      if (err) {
+          console.error('Error getting readings from database:', err);
+          res.status(500).send('Error getting readings from database');
+      }
+      res.json(rows);
+  }
+  );
+});
+
+//Get data for friday database entries
+app.get('/friday', function (req, res) {
+  db.all('SELECT * FROM readings WHERE day = "Fri" ORDER BY timestamp DESC', function(err, rows) {
+      if (err) {
+          console.error('Error getting readings from database:', err);
+          res.status(500).send('Error getting readings from database');
+      }
+      res.json(rows);
+  }
+  );
+});
+
+//Get data for saturday database entries
+app.get('/saturday', function (req, res) {
+  db.all('SELECT * FROM readings WHERE day = "Sat" ORDER BY timestamp DESC', function(err, rows) {
+      if (err) {
+          console.error('Error getting readings from database:', err);
+          res.status(500).send('Error getting readings from database');
+      }
+      res.json(rows);
+  }
+  );
+});
+
+//Get data for sunday database entries
+app.get('/sunday', function (req, res) {
+  db.all('SELECT * FROM readings WHERE day = "Sun" ORDER BY timestamp DESC', function(err, rows) {
+      if (err) {
+          console.error('Error getting readings from database:', err);
+          res.status(500).send('Error getting readings from database');
+      }
+      res.json(rows);
+  }
+  );
+});
 

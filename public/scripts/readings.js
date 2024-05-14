@@ -3,9 +3,12 @@ function updateReading() {
     .then(response => response.text())
     .then(data => {
       // Parse the MQTT message
-      const lines = data.split('\n');
-      const count = lines[0].split(': ')[1];
-      const time = lines[1];
+      const countRegex = /Count: (\d+)/;
+      const timeRegex = /Time: (.+)/;
+      const countMatch = data.match(countRegex);
+      const timeMatch = data.match(timeRegex);
+      const count = countMatch ? countMatch[1] : '';
+      const time = timeMatch ? timeMatch[1] : '';
 
       // Update the HTML elements
       document.getElementById('mqttReading').textContent = count;

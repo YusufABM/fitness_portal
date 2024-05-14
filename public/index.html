@@ -149,62 +149,6 @@
 
                           <!-- Line Chart -->
                           <div id="reportsChart"></div>
-
-                          <script>
-                            document.addEventListener("DOMContentLoaded", () => {
-                              new ApexCharts(document.querySelector("#reportsChart"), {
-                                series: [{
-                                  name: 'People',
-                                  data: [2, 3, 4, 5, 1, 3, 0],
-                                }],
-                                chart: {
-                                  height: 350,
-                                  type: 'area',
-                                  toolbar: {
-                                    show: false
-                                  },
-                                },
-                                markers: {
-                                  size: 3
-                                },
-                                colors: ['#4154f1'],
-                                fill: {
-                                  type: "gradient",
-                                  gradient: {
-                                    shadeIntensity: 1,
-                                    opacityFrom: 0.3,
-                                    opacityTo: 0.4,
-                                    stops: [0, 90, 100]
-                                  }
-                                },
-                                dataLabels: {
-                                  enabled: false
-                                },
-                                stroke: {
-                                  curve: 'stepline',
-                                  width: 1
-                                },
-                                xaxis: {
-                                  type: 'datetime',
-                                  categories: ["2018-09-19T00:00:00.000Z", "2018-09-19T01:30:00.000Z", "2018-09-19T02:30:00.000Z", "2018-09-19T03:30:00.000Z", "2018-09-19T04:30:00.000Z", "2018-09-19T05:30:00.000Z", "2018-09-19T06:30:00.000Z"]
-                                },
-                                yaxis: {
-                                  tickAmount: 5,
-                                  labels: {
-                                    formatter: function (val) {
-                                      return val.toFixed(0)
-                                    }
-                                  },
-                                  opposite: true,
-                                },
-                                tooltip: {
-                                  x: {
-                                    format: 'dd/MM/yy HH:mm'
-                                  },
-                                }
-                              }).render();
-                            });
-                          </script>
                           <!-- End Line Chart -->
                         </div>
                       </div>
@@ -235,6 +179,7 @@
   <!-- Template Main JS File -->
   <script src="scripts/main.js"></script>
   <script src="scripts/readings.js"></script>
+  <script src="scripts/graph.js"></script>
 
 </body>
 
