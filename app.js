@@ -49,6 +49,7 @@ client.on('message', function (topic, message) {
 
   // Parse the message to extract count, day, date, and time
   timeMatch = messageString.match(/Time: (\w+), (\d{2}).(\d{2}).(\d{2}), (\d{2}):(\d{2}):(\d{2})/);
+  if (timeMatch == null) return console.error('Error parsing message:', messageString);
   dayOfWeek = timeMatch[1];
   date = `${timeMatch[2]}.${timeMatch[3]}.${timeMatch[4]}`;
   hour = timeMatch[5];
