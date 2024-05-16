@@ -62,8 +62,7 @@ client.on('message', function (topic, message) {
 
   // Insert data into the database if the count has changed or if the last reading was more than 30 min ago
   if (count != lastCount || (timestamp.getTime() - lastTimestamp.getTime()) > (1800000)) {
-    insertData();
-  }
+     }
 
   /*/ Get the latest reading from the database
   db.get('SELECT * FROM readings ORDER BY timestamp DESC LIMIT 1', function(err, row) {
@@ -83,7 +82,6 @@ function insertData() {
                 console.error('Error inserting data into database:', err);
             } else {
                 lastCount = count;
-                console.log('Data inserted into database:', count, dayOfWeek, timestamp);
             }
         });
     }
