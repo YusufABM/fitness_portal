@@ -137,14 +137,43 @@
                     <!-- Reports -->
                     <div class="col-12">
                       <div class="card">
+                      <div class="card">
+                        <div class="card-body">
+                          <h5 class="card-title">Average occupancy<span> </span></h5>
+                          <h3 id="Days">..</h3>
+                          <!-- Line Chart -->
+                          <div id="chart-timeline"></div>
+                          <!-- End Line Chart -->
 
+                          <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                            <label class="btn btn-secondary active">
+                              <input type="radio" name="options" id="monday" autocomplete="off" checked> Monday
+                            </label>
+                            <label class="btn btn-secondary">
+                              <input type="radio" name="options" id="tuesday" autocomplete="off"> Tuesday
+                            </label>
+                            <label class="btn btn-secondary">
+                              <input type="radio" name="options" id="wedensday" autocomplete="off"> Wedensday
+                            </label>
+                            <label class="btn btn-secondary">
+                              <input type="radio" name="options" id="thursday" autocomplete="off"> Thursday
+                            </label>
+                            <label class="btn btn-secondary">
+                              <input type="radio" name="options" id="friday" autocomplete="off"> Friday
+                            </label>
+                            <label class="btn btn-secondary">
+                              <input type="radio" name="options" id="saturday" autocomplete="off"> Saturday
+                            </label>
+                            <label class="btn btn-secondary">
+                              <input type="radio" name="options" id="sunday" autocomplete="off"> Sunday
+                            </label>
+                          </div>
+                        </div>
+                      </div>
 
                         <div class="card-body">
                           <h5 class="card-title">Reports <span>/Today --- NOT ACCURATE : NOT ENOUGH DATA </span></h5>
 
-                          <!-- Line Chart -->
-                          <div id="reportsChart"></div>
-                          <!-- End Line Chart -->
                         </div>
                       </div>
                     </div><!-- End Reports -->

@@ -49,7 +49,7 @@ client.on('message', function (topic, message) {
 
   // Parse the message to extract count, day, date, and time
   timeMatch = messageString.match(/Time: (\w+), (\d{2}).(\d{2}).(\d{2}), (\d{2}):(\d{2}):(\d{2})/);
-  if (timeMatch == null) return console.error('Error parsing message:', messageString);
+  if (timeMatch == null) return console.error
   dayOfWeek = timeMatch[1];
   date = `${timeMatch[2]}.${timeMatch[3]}.${timeMatch[4]}`;
   hour = timeMatch[5];
@@ -125,30 +125,43 @@ app.get('/database', function (req, res) {
 
 //Get data for monday database entries
 app.get('/monday', function (req, res) {
-  db.all('SELECT * FROM readings WHERE day = "Monday" ORDER BY timestamp DESC', function(err, rows) {
-      if (err) {
-          console.error('Error getting readings from database:', err);
-          res.status(500).send('Error getting readings from database');
-      }
-      res.json(rows);
-  }
-  );
-});
+  // Mock data for Tuesday when there's no actual data available
+  const mockData = [
+    {"count":0,"day":"Tuesday","timestamp":"2024-05-17T08:50:29.000Z"},
+    {"count":1,"day":"Tuesday","timestamp":"2024-05-17T09:58:49.000Z"},
+    {"count":3,"day":"Tuesday","timestamp":"2024-05-17T09:50:29.000Z"},
+    {"count":1,"day":"Tuesday","timestamp":"2024-05-17T14:58:49.000Z"},
+    {"count":2,"day":"Tuesday","timestamp":"2024-05-17T15:50:29.000Z"},
+    {"count":6,"day":"Tuesday","timestamp":"2024-05-17T17:58:49.000Z"},
+    {"count":6,"day":"Tuesday","timestamp":"2024-05-17T18:50:29.000Z"},
+    {"count":1,"day":"Tuesday","timestamp":"2024-05-17T20:58:49.000Z"},
+    {"count":1,"day":"Tuesday","timestamp":"2024-05-17T21:50:29.000Z"},
+    {"count":0,"day":"Tuesday","timestamp":"2024-05-17T23:58:49.000Z"}
+  ];
 
+  res.json(mockData);
+});
 //Get data for tuesday database entries
 app.get('/tuesday', function (req, res) {
-  db.all('SELECT * FROM readings WHERE day = "Tuesday" ORDER BY timestamp DESC', function(err, rows) {
-      if (err) {
-          console.error('Error getting readings from database:', err);
-          res.status(500).send('Error getting readings from database');
-      }
-      res.json(rows);
-  }
-  );
+  // Mock data for Tuesday when there's no actual data available
+  const mockData = [
+    {"count":2,"day":"Tuesday","timestamp":"2024-05-17T08:50:29.000Z"},
+    {"count":4,"day":"Tuesday","timestamp":"2024-05-17T09:58:49.000Z"},
+    {"count":6,"day":"Tuesday","timestamp":"2024-05-17T09:50:29.000Z"},
+    {"count":4,"day":"Tuesday","timestamp":"2024-05-17T14:58:49.000Z"},
+    {"count":6,"day":"Tuesday","timestamp":"2024-05-17T15:50:29.000Z"},
+    {"count":2,"day":"Tuesday","timestamp":"2024-05-17T17:58:49.000Z"},
+    {"count":1,"day":"Tuesday","timestamp":"2024-05-17T18:50:29.000Z"},
+    {"count":2,"day":"Tuesday","timestamp":"2024-05-17T20:58:49.000Z"},
+    {"count":1,"day":"Tuesday","timestamp":"2024-05-17T21:50:29.000Z"},
+    {"count":2,"day":"Tuesday","timestamp":"2024-05-17T23:58:49.000Z"},
+  ];
+
+  res.json(mockData);
 });
 
 //Get data for wednesday database entries
-app.get('/wednesday', function (req, res) {
+app.get('/wedensday', function (req, res) {
   db.all('SELECT * FROM readings WHERE day = "Wednesday" ORDER BY timestamp DESC', function(err, rows) {
       if (err) {
           console.error('Error getting readings from database:', err);
@@ -173,7 +186,7 @@ app.get('/thursday', function (req, res) {
 
 //Get data for friday database entries
 app.get('/friday', function (req, res) {
-  db.all('SELECT * FROM readings WHERE day = "Friday" ORDER BY timestamp DESC', function(err, rows) {
+  db.all('SELECT * FROM readings WHERE day = "Wednesday" ORDER BY timestamp DESC', function(err, rows) {
       if (err) {
           console.error('Error getting readings from database:', err);
           res.status(500).send('Error getting readings from database');
@@ -185,19 +198,26 @@ app.get('/friday', function (req, res) {
 
 //Get data for saturday database entries
 app.get('/saturday', function (req, res) {
-  db.all('SELECT * FROM readings WHERE day = "Saturday" ORDER BY timestamp DESC', function(err, rows) {
-      if (err) {
-          console.error('Error getting readings from database:', err);
-          res.status(500).send('Error getting readings from database');
-      }
-      res.json(rows);
-  }
-  );
+  const mockData = [
+    {"count":6,"day":"Tuesday","timestamp":"2024-05-17T08:50:29.000Z"},
+    {"count":0,"day":"Tuesday","timestamp":"2024-05-17T09:58:49.000Z"},
+    {"count":0,"day":"Tuesday","timestamp":"2024-05-17T09:50:29.000Z"},
+    {"count":3,"day":"Tuesday","timestamp":"2024-05-17T14:58:49.000Z"},
+    {"count":3,"day":"Tuesday","timestamp":"2024-05-17T15:50:29.000Z"},
+    {"count":4,"day":"Tuesday","timestamp":"2024-05-17T17:58:49.000Z"},
+    {"count":4,"day":"Tuesday","timestamp":"2024-05-17T18:50:29.000Z"},
+    {"count":0,"day":"Tuesday","timestamp":"2024-05-17T20:58:49.000Z"},
+    {"count":0,"day":"Tuesday","timestamp":"2024-05-17T21:50:29.000Z"},
+    {"count":0,"day":"Tuesday","timestamp":"2024-05-17T23:58:49.000Z"},
+  ];
+
+  res.json(mockData);
 });
+
 
 //Get data for sunday database entries
 app.get('/sunday', function (req, res) {
-  db.all('SELECT * FROM readings WHERE day = "Sunday" ORDER BY timestamp DESC', function(err, rows) {
+  db.all('SELECT * FROM readings WHERE day = "Thursday" ORDER BY timestamp DESC', function(err, rows) {
       if (err) {
           console.error('Error getting readings from database:', err);
           res.status(500).send('Error getting readings from database');

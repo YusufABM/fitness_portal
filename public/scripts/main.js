@@ -337,16 +337,18 @@ function clearPaidTable() {
 
   // Initialize a message variable
   var message = "Chip activiation mail sent to caretakes:\n";
+  var message2 = "Each new member will be BCC'd:\n";
 
   // Iterate over each row in the paid table
   var rows = paidTableBody.querySelectorAll("tr");
   for (var i = 0; i < rows.length; i++) {
     var name = rows[i].querySelector("td:nth-child(2)").textContent.trim();
-    message += "- " + name + "\n";
+    var email = rows[i].querySelector("td:nth-child(5)").textContent.trim();
+    message += "- " + name + " (" + email + ")" + "\n";
     // Remove the row from the paid table
     rows[i].parentNode.removeChild(rows[i]);
   }
 
   // Show the message in a popup
-  alert(message);
+  alert(message + "\n" + message2);
 }
