@@ -62,6 +62,7 @@ client.on('message', function (topic, message) {
 
   // Insert data into the database if the count has changed or if the last reading was more than 30 min ago
   if (count != lastCount || (timestamp.getTime() - lastTimestamp.getTime()) > (1800000)) {
+      insertData();
      }
 
   /*/ Get the latest reading from the database

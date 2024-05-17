@@ -317,3 +317,36 @@
   }
 
 })();
+
+
+function moveRow(checkbox) {
+  // Get the row containing the checkbox
+  var row = checkbox.parentNode.parentNode;
+
+  // Remove the row from the main table
+  row.parentNode.removeChild(row);
+
+  // Add the row to the paid table
+  document.getElementById('paidTable').getElementsByTagName('tbody')[0].appendChild(row);
+}
+
+
+function clearPaidTable() {
+  // Get the table body of the paid table
+  var paidTableBody = document.getElementById('paidTable').getElementsByTagName('tbody')[0];
+
+  // Initialize a message variable
+  var message = "Chip activiation mail sent to caretakes:\n";
+
+  // Iterate over each row in the paid table
+  var rows = paidTableBody.querySelectorAll("tr");
+  for (var i = 0; i < rows.length; i++) {
+    var name = rows[i].querySelector("td:nth-child(2)").textContent.trim();
+    message += "- " + name + "\n";
+    // Remove the row from the paid table
+    rows[i].parentNode.removeChild(rows[i]);
+  }
+
+  // Show the message in a popup
+  alert(message);
+}

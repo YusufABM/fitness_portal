@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title>Tables / General - NiceAdmin Bootstrap Template</title>
+  <meta content="" name="description">
+  <meta content="" name="keywords">
+
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.gstatic.com" rel="preconnect">
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Template Main CSS File -->
+  <link href="css/style.css" rel="stylesheet">
+
+  <!-- =======================================================
+  * Template Name: NiceAdmin
+  * Template URL: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/
+  * Updated: Apr 20 2024 with Bootstrap v5.3.3
+  * Author: BootstrapMade.com
+  * License: https://bootstrapmade.com/license/
+  ======================================================== -->
+</head>
+
+<body>
+
+   <!-- ======= Header ======= -->
+   <header id="header" class="header fixed-top d-flex align-items-center">
+    <i class="bi bi-list toggle-sidebar-btn"></i>
+    <h2 class="textContent"><a href="index.html">VK Fitness</a></h2>
+
+</header><!-- End Header -->
+
+  <main id="main" class="main">
+
+    <div class="pagetitle">
+      <h1>User submittions</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+          <li class="breadcrumb-item">Booard Login</li>
+          <li class="breadcrumb-item active">Tables</li>
+        </ol>
+      </nav>
+    </div><!-- End Page Title -->
+
+    <section class="section">
+      <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                  <h5 class="card-title">Need payment confirmation</h5>
+
+                  <!-- Default Table -->
+                  <table id="mainTable" class="table table-responsive">
+                    <thead>
+                      <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Block</th>
+                        <th scope="col">Room</th>
+                        <th scope="col">Submitted</th>
+                        <th scope="col">Paid</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th scope="row">1</th>
+                        <td>Brandon Jacob</td>
+                        <td>31</td>
+                        <td>28</td>
+                        <td>2016-05-25</td>
+                        <td><input type="checkbox" onchange="moveRow(this)"></td>
+                      </tr>
+                      <tr>
+                        <th scope="row">2</th>
+                        <td>Bridie Kessler</td>
+                        <td>33</td>
+                        <td>12</td>
+                        <td>2014-12-05</td>
+                        <td><input type="checkbox" onchange="moveRow(this)"></td>
+                      </tr>
+                      <tr>
+                        <th scope="row">3</th>
+                        <td>Ashleigh Langosh</td>
+                        <td>18</td>
+                        <td>1</td>
+                        <td>2011-08-12</td>
+                        <td><input type="checkbox" onchange="moveRow(this)"></td>
+                      </tr>
+                      <tr>
+                        <th scope="row">4</th>
+                        <td>Angus Grady</td>
+                        <td>46</td>
+                        <td>26</td>
+                        <td>2012-06-11</td>
+                        <td><input type="checkbox" onchange="moveRow(this)"></td>
+                      </tr>
+                      <tr>
+                        <th scope="row">5</th>
+                        <td>Raheem Lehner</td>
+                        <td>25</td>
+                        <td>7</td>
+                        <td>2011-04-19</td>
+                        <td><input type="checkbox" onchange="moveRow(this)"></td>
+                      </tr>
+                      <!-- Add more rows here -->
+                    </tbody>
+                  </table>
+                  <!-- End Default Table Example -->
+                </div>
+              </div>
+        </div>
+      </div>
+
+
+              <div class="row">
+                <div class="col-lg-12">
+                    <div class="card">
+                        <div class="card-body">
+                          <h5 class="card-title">Paid Table</h5>
+
+                          <!-- Table to move paid submissions -->
+                          <table id="paidTable" class="table table-responsive">
+                            <thead>
+                              <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Block</th>
+                                <th scope="col">Room</th>
+                                <th scope="col">Submitted</th>
+                                <th scope="col">Paid</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+
+                          <!-- Paid submissions will be moved here -->
+                        </tbody>
+                      </table>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-center justify-content-end">
+                      <button onclick="clearPaidTable()" class="btn btn-primary">Send chip activation mail to VK-caretakers &gt;</button>
+                    </div>
+                  </div>
+                          <!-- End Paid Table -->
+                        </div>
+                      </div>
+      </section>
+
+  </main><!-- End #main -->
+
+
+  <!-- ======= Footer ======= -->
+  <footer id="footer" class="footer">
+    <div class="copyright">
+      &copy; Copyright <strong><span>NiceAdmin</span></strong>. All Rights Reserved
+    </div>
+    <div class="credits">
+      <!-- All the links in the footer should remain intact. -->
+      <!-- You can delete the links only if you purchased the pro version. -->
+      <!-- Licensing information: https://bootstrapmade.com/license/ -->
+      <!-- Purchase the pro version with working PHP/AJAX contact form: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/ -->
+      Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
+    </div>
+  </footer><!-- End Footer -->
+
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+  <!-- Template Main JS File -->
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="vendor/tinymce/tinymce.js"></script>
+
+  <script src="scripts/main.js"></script>
+
+</body>
+
+</html>
