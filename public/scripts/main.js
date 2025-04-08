@@ -352,3 +352,4 @@ function clearPaidTable() {
   // Show the message in a popup
   alert(message + "\n" + message2);
 }
+

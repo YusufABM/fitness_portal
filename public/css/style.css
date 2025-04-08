@@ -1245,3 +1245,24 @@ h2{
   font-size: 13px;
   color: #012970;
 }
+
+
+
+.circular-progress .bg {
+  stroke: #e6e6e6;
+}
+
+.circular-progress .progress {
+  stroke: #012970;
+  stroke-dasharray: 251.2;
+  stroke-dashoffset: 251.2;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+.progress-text {
+  font-size: 20px;
+  fill: #333;
+  font-weight: bold;
+}
