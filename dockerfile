@@ -1,4 +1,4 @@
-FROM node:22-slim
+FROM node:22
 
 # Create app directory
 WORKDIR /app
@@ -11,7 +11,7 @@ RUN npm install
 # Bundle app source
 COPY . .
 
-EXPOSE 8080
+EXPOSE 2095
 
 CMD [ "node", "app.js" ]
 

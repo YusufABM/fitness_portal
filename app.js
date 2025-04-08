@@ -2,7 +2,7 @@ const path = require('path')
 
 const express = require('express')
 const app = express()
-const port = 8080
+const port = 2095
 const mqtt = require('mqtt');
 const { get } = require('http');
 const sqlite3 = require('sqlite3').verbose();

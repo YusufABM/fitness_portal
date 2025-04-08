@@ -1,9 +1,14 @@
-version: '3'
+version: '3.8'
 services:
   app:
     build: .
     volumes:
       - ./data:/app/data
     ports:
-      - "8080:8080"
+      - "2095:2095"
     command: node app.js
+    logging:
+      driver: "json-file"  # Default Docker logging driver
+      options:
+        max-size: "10m"    # 10MB max
+        max-file: "3"      # Keep 3 rotated files
