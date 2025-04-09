@@ -36,6 +36,7 @@ function getColorForCount(count, max = 6) {
 
 // Helper function to convert hex color to RGB
 function hexToRgb(hex) {
+  // Handle both #RRGGBB and RRGGBB formats
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return result ? {
     r: parseInt(result[1], 16),
@@ -47,48 +48,62 @@ function hexToRgb(hex) {
 // Centralized function to fetch and process data
 function updateReading() {
   fetch('/latest')
-    .then(response => response.text())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.text();
+    })
     .then(data => {
       // Parse the MQTT message
       const countRegex = /Count: (\d+)/;
       const timeRegex = /Time: (.+)/;
       const countMatch = data.match(countRegex);
       const timeMatch = data.match(timeRegex);
-      const count = countMatch ? countMatch[1] : '0';
+
+      const count = countMatch ? parseInt(countMatch[1]) : 0;
       const time = timeMatch ? timeMatch[1] : '';
 
       // Update UI elements and progress circle with the time from data
-      updatePeopleCount(parseInt(count), time);
+      updatePeopleCount(count, time);
     })
     .catch(error => console.error('Error fetching latest data:', error));
 }
 
-// Combined function to update count and time display
 function updatePeopleCount(count, time) {
   const max = 6;
   const circle = document.querySelector('.circular-progress .progress');
   const countElement = document.getElementById('mqttReading');
-  const circumference = 2 * Math.PI * 40; // 2πr with r=40
+  const circumference = 2 * Math.PI * 75; // 2πr with r=75
 
-  if (count > max) {
-    circle.style.strokeDashoffset = circumference - (max / max) * circumference;
-    circle.style.stroke = getColorForCount(max, max);
+  // Ensure count is a number
+  count = typeof count === 'number' ? count : 0;
+
+  // Calculate progress and color
+  const normalizedCount = Math.min(Math.max(count, 0), max);
+  const progress = normalizedCount / max;
+  const color = getColorForCount(normalizedCount, max);
+
+  // Update circle progress
+  if (normalizedCount === 0) {
+    circle.style.strokeDashoffset = `${circumference}`; // Full circumference for no progress
   } else {
-    circle.style.strokeDashoffset = circumference - (count / max) * circumference;
-    circle.style.stroke = getColorForCount(count, max);
+    circle.style.strokeDashoffset = `${circumference - (progress * circumference)}`;
   }
+  circle.style.stroke = color;
 
-  // Update count text (with color transition)
-  const color = getColorForCount(Math.min(count, max), max); // Added missing color variable
+  // Update count text
   countElement.textContent = count;
   countElement.style.color = color;
 
-  // Update last updated text
-  document.getElementById('lastUpdated').textContent = "LAST UPDATED: " + time;
+  // Update last updated text if time is provided
+  if (time) {
+    document.getElementById('lastUpdated').textContent = "LAST UPDATED: " + time;
+  }
 }
 
 // Chart configuration
-const options = {
+const chartOptions = {
   series: [{
     name: 'People',
     data: []
@@ -98,6 +113,7 @@ const options = {
     id: 'area-datetime',
     type: 'area',
     height: 350,
+    zoom: { enabled: false }
   },
   dataLabels: { enabled: false },
   stroke: {
@@ -114,7 +130,7 @@ const options = {
   yaxis: {
     tickAmount: 5,
     labels: {
-      formatter: val => val.toFixed(0)
+      formatter: val => Math.round(val)
     },
     max: 6,
     min: 0,
@@ -123,20 +139,37 @@ const options = {
 };
 
 // Initialize chart once
-const chart = new ApexCharts(document.querySelector("#chart-timeline"), options);
-chart.render();
+let chart;
+function initializeChart() {
+  chart = new ApexCharts(document.querySelector("#chart-timeline"), chartOptions);
+  chart.render();
+}
 
-// Optimized data fetching function
+// Fetch and process data for a specific day
 function fetchData(day) {
-  fetch('/' + day)
-    .then(response => response.json())
+  //console.log(`Fetching data for: ${day}`);
+  fetch('/' + day.toLowerCase())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
     .then(data => {
+      //console.log(`Data received for ${day}:`, data);
+
       // Create block containers for the 5 time periods (8-11, 11-14, etc.)
       const blockCounts = Array(5).fill().map(() => []);
 
       // Process data in a single loop
       data.forEach(item => {
-        const hour = new Date(item.timestamp).getHours();
+        const timestamp = new Date(item.timestamp);
+        if (isNaN(timestamp.getTime())) {
+          console.error('Invalid timestamp:', item.timestamp);
+          return;
+        }
+
+        const hour = timestamp.getHours();
         const blockIndex = Math.floor((hour - 8) / 3);
 
         if (blockIndex >= 0 && blockIndex < 5) {
@@ -146,33 +179,38 @@ function fetchData(day) {
 
       // Calculate averages and format for chart
       const seriesData = blockCounts.map((block, index) => ({
-        x: options.xaxis.categories[index],
-        y: block.length ? block.reduce((sum, val) => sum + val, 0) / block.length : 0
+        x: chartOptions.xaxis.categories[index],
+        y: block.length ? Math.round(block.reduce((sum, val) => sum + val, 0) / block.length) : 0
       }));
 
       // Update chart with new data
       chart.updateSeries([{ data: seriesData }]);
     })
-    .catch(error => console.error('Error fetching data for ' + day + ':', error));
+    .catch(error => console.error(`Error fetching data for ${day}:`, error));
 }
 
-// Setup event listeners for day selection
-const daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+// Handle day selection
+function selectDay(day) {
+  // Remove active class from all buttons
+  document.querySelectorAll('.day-tabs .nav-link').forEach(btn => {
+    btn.classList.remove('active');
+  });
 
-daysOfWeek.forEach(day => {
-  const element = document.querySelector('#' + day);
-  if (element) {
-    element.addEventListener('click', () => {
-      fetchData(day.charAt(0).toUpperCase() + day.slice(1));
-    });
+  // Add active class to selected button
+  const tabButton = document.querySelector(`[data-day="${day.toLowerCase()}"]`);
+  if (tabButton) {
+    tabButton.classList.add('active');
   }
-});
 
-// Initial UI setup with blue color
-updatePeopleCount(0, '');
+  // Update dropdown value
+  document.getElementById('daySelect').value = day.toLowerCase();
 
-// Add CSS to ensure the color transitions smoothly
-document.addEventListener('DOMContentLoaded', () => {
+  // Fetch data for selected day
+  fetchData(day);
+}
+
+// Initialize the application
+function initializeApp() {
   // Add transition style for smooth color changes
   const style = document.createElement('style');
   style.textContent = `
@@ -185,12 +223,31 @@ document.addEventListener('DOMContentLoaded', () => {
   `;
   document.head.appendChild(style);
 
-  // Initialize with default data and start polling
-  fetchData('Monday');
-  //updateReading();
+  // Initialize chart
+  initializeChart();
 
-  //updatePeopleCount(1, '');
+  // Set up day selection event listeners
+  document.querySelectorAll('.day-tabs .nav-link').forEach(button => {
+    button.addEventListener('click', function() {
+      const day = this.getAttribute('data-day');
+      selectDay(day.charAt(0).toUpperCase() + day.slice(1));
+    });
+  });
+
+  // Add event listener to dropdown
+  document.getElementById('daySelect').addEventListener('change', function() {
+    selectDay(this.value.charAt(0).toUpperCase() + this.value.slice(1));
+  });
+
+  // Initialize with default data
+  selectDay('Monday');
 
   // Set up interval for regular updates (every second)
   setInterval(updateReading, 1000);
-});
+
+  // Initial UI setup
+  updatePeopleCount(0, '');
+}
+
+// Start the application when DOM is loaded
+document.addEventListener('DOMContentLoaded', initializeApp);

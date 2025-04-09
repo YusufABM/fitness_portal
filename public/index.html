@@ -11,7 +11,6 @@
   <meta content="" name="description">
   <meta content="" name="keywords">
 
-
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
@@ -19,24 +18,18 @@
   <!-- Vendor CSS Files -->
   <link href="vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
 
-
   <!-- Template Main CSS File -->
   <link href="css/style.css" rel="stylesheet">
-
 </head>
 
 <body>
 
   <!-- ======= Header ======= -->
   <header id="header" class="header fixed-top d-flex align-items-center">
-
-
       <h2 class="textContent"><a href="index.html">VK Fitness</a></h2>
-
   </header><!-- End Header -->
 
   <main id="main" class="main">
-
     <section class="section dashboard">
       <div class="row">
 
@@ -44,81 +37,86 @@
         <div class="col-lg-8">
           <div class="row">
 
-            <!-- Peopel Card -->
+            <!-- People Card -->
             <div class="col-xxl-4 col-md-6">
               <div class="card info-card sales-card">
-
-
                 <div class="card-body">
                   <h5 class="card-title">People in the gym <span>| Right Now</span></h5>
                   <div class="d-flex justify-content-center align-items-center flex-column">
-                    <svg class="circular-progress" width="100" height="100">
-                      <circle class="bg" cx="50" cy="50" r="40" stroke-width="10" fill="none" />
-                      <circle class="progress" cx="50" cy="50" r="40" stroke-width="10" fill="none" />
+                    <svg class="circular-progress" width="180" height="180">
+                      <circle class="bg" cx="90" cy="90" r="75" stroke-width="15" fill="none" />
+                      <circle class="progress" cx="90" cy="90" r="75" stroke-width="15" fill="none" />
                       <text x="50%" y="50%" text-anchor="middle" dy=".3em" class="progress-text" id="mqttReading">0</text>
                     </svg>
                     <p><small id="lastUpdated" style="font-size: 10px; color: #cbcaca;">LAST UPDATED: .....</small></p>
                   </div>
                 </div>
-
               </div>
             </div><!-- End Sales Card -->
-
-
           </div>
         </div><!-- End Left side columns -->
 
         <!-- Right side columns -->
         <div class="col-lg-4">
-
-
-
         </div><!-- End Right side columns -->
 
-                    <!-- Reports -->
-                    <div class="col-12">
-                      <div class="card">
-                      <div class="card">
-                        <div class="card-body">
-                          <h5 class="card-title">Average occupancy<span> </span></h5>
-                          <h3 id="Days">..</h3>
-                          <!-- Line Chart -->
-                          <div id="chart-timeline"></div>
-                          <!-- End Line Chart -->
+        <!-- Reports -->
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Average occupancy</h5>
 
-                          <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                            <label class="btn btn-secondary active">
-                              <input type="radio" name="options" id="monday" autocomplete="off" checked> Monday
-                            </label>
-                            <label class="btn btn-secondary">
-                              <input type="radio" name="options" id="tuesday" autocomplete="off"> Tuesday
-                            </label>
-                            <label class="btn btn-secondary">
-                              <input type="radio" name="options" id="wedensday" autocomplete="off"> Wedensday
-                            </label>
-                            <label class="btn btn-secondary">
-                              <input type="radio" name="options" id="thursday" autocomplete="off"> Thursday
-                            </label>
-                            <label class="btn btn-secondary">
-                              <input type="radio" name="options" id="friday" autocomplete="off"> Friday
-                            </label>
-                            <label class="btn btn-secondary">
-                              <input type="radio" name="options" id="saturday" autocomplete="off"> Saturday
-                            </label>
-                            <label class="btn btn-secondary">
-                              <input type="radio" name="options" id="sunday" autocomplete="off"> Sunday
-                            </label>
-                          </div>
-                        </div>
-                      </div>
+              <!-- Line Chart -->
+              <div id="chart-timeline"></div>
+              <!-- End Line Chart -->
 
-                        </div>
-                      </div>
-                    </div><!-- End Reports -->
+              <!-- Day selector - responsive design -->
+              <div class="day-selector">
+                <!-- Tablet/Desktop: Pills/Tabs -->
+                <ul class="nav nav-pills day-tabs" id="dayTabs" role="tablist">
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="monday-tab" data-day="monday" type="button">Monday</button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tuesday-tab" data-day="tuesday" type="button">Tuesday</button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="wednesday-tab" data-day="wednesday" type="button">Wednesday</button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="thursday-tab" data-day="thursday" type="button">Thursday</button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="friday-tab" data-day="friday" type="button">Friday</button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="saturday-tab" data-day="saturday" type="button">Saturday</button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="sunday-tab" data-day="sunday" type="button">Sunday</button>
+                  </li>
+                </ul>
+
+                <!-- Mobile: Dropdown -->
+                <div class="mobile-day-selector">
+                  <select id="daySelect" class="form-select">
+                    <option value="monday" selected>Monday</option>
+                    <option value="tuesday">Tuesday</option>
+                    <option value="wednesday">Wednesday</option>
+                    <option value="thursday">Thursday</option>
+                    <option value="friday">Friday</option>
+                    <option value="saturday">Saturday</option>
+                    <option value="sunday">Sunday</option>
+                  </select>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div><!-- End Reports -->
 
       </div>
     </section>
-
   </main><!-- End #main -->
 
   <!-- ======= Footer ======= -->
@@ -140,7 +138,6 @@
   <!-- Template Main JS File -->
   <script src="scripts/main.js"></script>
   <script src="scripts/data.js"></script>
-
 </body>
 
 </html>

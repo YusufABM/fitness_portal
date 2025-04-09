@@ -261,12 +261,13 @@ h2{
 }
 
 .card-body {
-  padding: 0 20px 20px 20px;
+  padding: 20px 20px 20px 20px;
 }
 
 .card-img-overlay {
   background-color: rgba(255, 255, 255, 0.6);
 }
+
 
 /* Alerts */
 .alert-heading {
@@ -1248,21 +1249,98 @@ h2{
 
 
 
+/* Center cards on larger screens */
+@media (min-width: 1200px) {
+  .dashboard .row {
+    justify-content: center;
+  }
+}
+
+.circular-progress {
+  display: block;
+  margin: auto; /* Center the SVG horizontally */
+  width: 180px; /* Ensure the size matches the SVG */
+  height: 180px;
+}
+
 .circular-progress .bg {
-  stroke: #e6e6e6;
+  stroke: #d3d3d3; /* Grey background */
+  stroke-linecap: round;
 }
 
 .circular-progress .progress {
-  stroke: #012970;
-  stroke-dasharray: 251.2;
-  stroke-dashoffset: 251.2;
-  transform: rotate(-90deg);
-  transform-origin: center;
-  transition: stroke-dashoffset 0.6s ease;
+  stroke: #012970; /* Progress bar color */
+  stroke-linecap: round;
+  stroke-dasharray: 471; /* Circumference: 2 * π * r (r = 75) */
+  stroke-dashoffset: 471; /* Start with no progress */
+  transition: stroke-dashoffset 0.6s ease, stroke 0.6s ease;
 }
 
+
 .progress-text {
-  font-size: 20px;
-  fill: #333;
-  font-weight: bold;
+  font-size: 60px; /* Increased from 30px */
 }
+
+    /* Custom styles for day selector */
+    .day-selector {
+      margin-top: 20px;
+    }
+
+    /* Desktop view - horizontal pill buttons */
+    @media (min-width: 768px) {
+      .day-tabs {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1rem;
+      }
+
+      .day-tabs .nav-link {
+        background-color: #ffffff; /* Grey background */
+        color: #000; /* Black text */
+        margin: 0 2px;
+        border-radius: 30px;
+        padding: 5px 15px;
+        font-size: 0.9rem;
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+
+      .day-tabs .nav-link:hover {
+        background-color: #d3d3d3; /* Darker grey on hover */
+        color: #000; /* Keep text black */
+      }
+
+      .day-tabs .nav-link.active {
+        background-color: #adadad; /* Black background for active button */
+        color: #ffffff;
+      }
+
+      .mobile-day-selector {
+        display: none;
+      }
+    }
+
+    /* Mobile view - dropdown selector */
+    @media (max-width: 767px) {
+      .day-tabs {
+        display: none;
+      }
+
+      .mobile-day-selector {
+        display: block;
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+      }
+
+      .mobile-day-selector select {
+        width: 100%;
+        padding: 8px 12px;
+        border-radius: 20px;
+        border: 1px solid #ddd;
+        background-color: #f8f9fa;
+        font-size: 1rem;
+        text-align: center;
+        text-align-last: center;
+      }
+    }
+
