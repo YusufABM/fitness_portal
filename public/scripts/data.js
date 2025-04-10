@@ -104,6 +104,8 @@ function connectWebSocket() {
 
 // Process data from WebSocket
 function processWebSocketData(data) {
+
+
   // Parse the message
   const countRegex = /Count: (\d+)/;
   const timeRegex = /Time: (.+)/;
@@ -438,8 +440,6 @@ function initializeApp() {
   // Initialize WebSocket connection
   connectWebSocket();
 
-  // Set up periodic connection check
-  setInterval(checkConnection, 10000);
 
   // Add debug logging to help troubleshoot WebSocket issues
   console.log("Application initialized, WebSocket connecting to wss://vkmotion.site");
