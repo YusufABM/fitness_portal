@@ -1,148 +1,21 @@
-// Add gradient color functionality based on count value
-function getColorForCount(count, max = 6) {
-  // Define color stops for our gradient (blue -> purple -> red)
-  const colorStops = [
-    { value: 0, color: '#012970' },   // Blue
-    { value: max/2, color: '#8A2BE2' }, // Purple
-    { value: max, color: '#FF0000' }  // Red
-  ];
-
-  // Find the two color stops that our count falls between
-  let lowerStop = colorStops[0];
-  let upperStop = colorStops[colorStops.length - 1];
-
-  for (let i = 0; i < colorStops.length - 1; i++) {
-    if (count >= colorStops[i].value && count <= colorStops[i + 1].value) {
-      lowerStop = colorStops[i];
-      upperStop = colorStops[i + 1];
-      break;
-    }
-  }
-
-  // Calculate interpolation factor
-  const range = upperStop.value - lowerStop.value;
-  const factor = range === 0 ? 0 : (count - lowerStop.value) / range;
-
-  // Interpolate RGB components
-  const lowerRGB = hexToRgb(lowerStop.color);
-  const upperRGB = hexToRgb(upperStop.color);
-
-  const r = Math.round(lowerRGB.r + factor * (upperRGB.r - lowerRGB.r));
-  const g = Math.round(lowerRGB.g + factor * (upperRGB.g - lowerRGB.g));
-  const b = Math.round(lowerRGB.b + factor * (upperRGB.b - lowerRGB.b));
-
-  return `rgb(${r}, ${g}, ${b})`;
-}
-
-// Helper function to convert hex color to RGB
-function hexToRgb(hex) {
-  // Handle both #RRGGBB and RRGGBB formats
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result ? {
-    r: parseInt(result[1], 16),
-    g: parseInt(result[2], 16),
-    b: parseInt(result[3], 16)
-  } : { r: 0, g: 0, b: 0 };
-}
-
-// Initialize WebSocket connection
-let socket;
-let isConnected = false;
-let reconnectAttempts = 0;
-const maxReconnectAttempts = 5;
-const reconnectDelay = 3000; // 3 seconds
+// Initialize application variables
 let lastUpdateTime = Date.now();
-let lastCountChangeTime = ""; // Track when count last changed
-let lastCount = null; // Track the last count value
+let lastCountChangeTime = "";
+let lastCount = null;
+const pollingInterval = 30000; // Check for updates every 30 seconds
 
-function connectWebSocket() {
-  // Close existing socket if any
-  if (socket) {
-    socket.close();
-  }
+// Process data from the lastCountChange endpoint
+function processCountChangeData(data) {
+  if (!data) return;
 
-  // Create new WebSocket connection
-  socket = new WebSocket(`wss://vkmotion.site`);
-
-  // Connection opened
-  socket.addEventListener('open', (event) => {
-    console.log('WebSocket connection established');
-    isConnected = true;
-    reconnectAttempts = 0;
-    updateStatusDot('connected');
-  });
-
-  // Listen for messages
-  socket.addEventListener('message', (event) => {
-    const data = event.data;
-    processWebSocketData(data);
-    lastUpdateTime = Date.now();
-    pulseStatusDot();
-  });
-
-  // Connection closed
-  socket.addEventListener('close', (event) => {
-    isConnected = false;
-    updateStatusDot('disconnected');
-
-    // Attempt to reconnect if not max attempts reached
-    if (reconnectAttempts < maxReconnectAttempts) {
-      reconnectAttempts++;
-      setTimeout(connectWebSocket, reconnectDelay);
-    } else {
-      // Fall back to HTTP polling
-      setInterval(updateReadingViaHttp, 5000);
-    }
-  });
-
-  // Connection error
-  socket.addEventListener('error', (event) => {
-    console.error('WebSocket error:', event);
-    updateStatusDot('disconnected');
-  });
-}
-
-// Process data from WebSocket
-function processWebSocketData(data) {
-
-
-  // Parse the message
-  const countRegex = /Count: (\d+)/;
-  const timeRegex = /Time: (.+)/;
-  const countMatch = data.match(countRegex);
-  const timeMatch = data.match(timeRegex);
-
-  const count = countMatch ? parseInt(countMatch[1]) : 0;
-  const time = timeMatch ? timeMatch[1] : '';
-
-  // Check if count has changed
-  if (lastCount !== null && count !== lastCount) {
-    lastCountChangeTime = time;
-  }
-
-  // Update last count
-  lastCount = count;
+  // Update last count and time
+  lastCount = data.count;
+  lastCountChangeTime = data.time;
+  lastUpdateTime = Date.now();
 
   // Update UI elements and progress circle
-  // Use lastCountChangeTime if available, otherwise use current time
-  updatePeopleCount(count, time, lastCountChangeTime);
-}
-
-// Fallback function to fetch data via HTTP
-function updateReadingViaHttp() {
-  fetch('/latest')
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.text();
-    })
-    .then(data => {
-      processWebSocketData(data); // Reuse the same processing function
-      lastUpdateTime = Date.now();
-      pulseStatusDot();
-    })
-    .catch(error => console.error('Error fetching latest data:', error));
+  updatePeopleCount(data.count, data.time, data.time);
+  pulseStatusDot('updated');
 }
 
 // Fetch the last count change information from the server
@@ -155,19 +28,16 @@ function fetchLastCountChange() {
       return response.json();
     })
     .then(data => {
-      // Update our local variables with the server data
-      lastCount = data.count;
-      lastCountChangeTime = data.time;
+      // Process the data
+      processCountChangeData(data);
 
-      // Update the UI with this information
-      if (data.time) {
-        document.getElementById('lastUpdated').textContent = "LAST CHANGE: " + data.time;
-      }
-
-      // Update the count display with the latest value from server
-      updatePeopleCount(data.count, data.time, data.time);
+      // Update the status indicator
+      updateStatusDot('connected');
     })
-    .catch(error => console.error('Error fetching last count change:', error));
+    .catch(error => {
+      console.error('Error fetching last count change:', error);
+      updateStatusDot('disconnected');
+    });
 }
 
 // Create status dot
@@ -224,7 +94,7 @@ function updateStatusDot(status) {
 }
 
 // Create a pulse effect for the status dot
-function pulseStatusDot() {
+function pulseStatusDot(status) {
   const statusDot = document.getElementById('status-dot');
   if (!statusDot) return;
 
@@ -263,12 +133,19 @@ function updatePeopleCount(count, time, countChangeTime) {
   countElement.textContent = count;
   countElement.style.color = color;
 
-  // Update last updated text with either the count change time or current time
-  // Use count change time if available, or current time as fallback
-  const displayTime = countChangeTime || time;
-  if (displayTime) {
-    document.getElementById('lastUpdated').textContent = "LAST COUNT : " + displayTime;
+  // Update last updated text
+  if (countChangeTime) {
+    document.getElementById('lastUpdated').textContent = "LAST COUNT: " + countChangeTime;
   }
+}
+
+// Get color based on count value (function not defined in original snippet)
+function getColorForCount(count, max) {
+  // Default implementation using a gradient from green to red
+  const ratio = count / max;
+  if (ratio < 0.33) return '#28a745'; // Green for low values
+  if (ratio < 0.66) return '#ffc107'; // Yellow for medium values
+  return '#dc3545'; // Red for high values
 }
 
 // Chart configuration
@@ -375,17 +252,6 @@ function selectDay(day) {
   fetchData(day);
 }
 
-// Check connection every 10 seconds
-function checkConnection() {
-  if (isConnected) {
-    const now = Date.now();
-    // If no update for more than 30 seconds, consider connection stale
-    if (now - lastUpdateTime > 30000) {
-      updateStatusDot('disconnected');
-    }
-  }
-}
-
 // Initialize the application
 function initializeApp() {
   // Add transition styles for smooth color changes
@@ -437,12 +303,16 @@ function initializeApp() {
   // Fetch the last count change from the server immediately
   fetchLastCountChange();
 
-  // Initialize WebSocket connection
-  connectWebSocket();
+  // Set up periodic polling for updates
+  setInterval(fetchLastCountChange, pollingInterval);
 
-
-  // Add debug logging to help troubleshoot WebSocket issues
-  console.log("Application initialized, WebSocket connecting to wss://vkmotion.site");
+  // Add event listener for page visibility changes
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+      // When page becomes visible again, fetch the latest data
+      fetchLastCountChange();
+    }
+  });
 }
 
 // Start the application when DOM is loaded
