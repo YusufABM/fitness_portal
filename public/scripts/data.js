@@ -159,7 +159,7 @@ function fetchLastCountChange() {
 
       // Update the UI with this information
       if (data.time) {
-        document.getElementById('lastUpdated').textContent = "LAST COUNT CHANGE: " + data.time;
+        document.getElementById('lastUpdated').textContent = "LAST CHANGE: " + data.time;
       }
 
       // Update the count display with the latest value from server
