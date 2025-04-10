@@ -51,6 +51,7 @@ let isConnected = false;
 let reconnectAttempts = 0;
 const maxReconnectAttempts = 5;
 const reconnectDelay = 3000; // 3 seconds
+let lastUpdateTime = Date.now();
 
 function connectWebSocket() {
   // Close existing socket if any
@@ -66,27 +67,27 @@ function connectWebSocket() {
     console.log('WebSocket connection established');
     isConnected = true;
     reconnectAttempts = 0;
-    updateConnectionStatus('Connected');
+    updateStatusDot('connected');
   });
 
   // Listen for messages
   socket.addEventListener('message', (event) => {
     const data = event.data;
     processWebSocketData(data);
+    lastUpdateTime = Date.now();
+    pulseStatusDot();
   });
 
   // Connection closed
   socket.addEventListener('close', (event) => {
     isConnected = false;
-    updateConnectionStatus('Disconnected');
+    updateStatusDot('disconnected');
 
     // Attempt to reconnect if not max attempts reached
     if (reconnectAttempts < maxReconnectAttempts) {
       reconnectAttempts++;
-      updateConnectionStatus(`Reconnecting (${reconnectAttempts}/${maxReconnectAttempts})...`);
       setTimeout(connectWebSocket, reconnectDelay);
     } else {
-      updateConnectionStatus('Connection failed. Falling back to HTTP.');
       // Fall back to HTTP polling
       setInterval(updateReadingViaHttp, 5000);
     }
@@ -95,7 +96,7 @@ function connectWebSocket() {
   // Connection error
   socket.addEventListener('error', (event) => {
     console.error('WebSocket error:', event);
-    updateConnectionStatus('Error connecting');
+    updateStatusDot('disconnected');
   });
 }
 
@@ -125,25 +126,77 @@ function updateReadingViaHttp() {
     })
     .then(data => {
       processWebSocketData(data); // Reuse the same processing function
+      lastUpdateTime = Date.now();
+      pulseStatusDot();
     })
     .catch(error => console.error('Error fetching latest data:', error));
 }
 
-// Update connection status indicator
-function updateConnectionStatus(status) {
-  const connectionStatus = document.getElementById('connection-status');
-  if (connectionStatus) {
-    connectionStatus.textContent = `Connection: ${status}`;
+// Create status dot
+function createStatusDot() {
+  const statusDot = document.createElement('div');
+  statusDot.id = 'status-dot';
 
-    // Update color based on status
-    if (status.includes('Connected')) {
-      connectionStatus.className = 'status-connected';
-    } else if (status.includes('Reconnecting')) {
-      connectionStatus.className = 'status-reconnecting';
-    } else {
-      connectionStatus.className = 'status-disconnected';
-    }
+  // Add the dot to the DOM - find a good location in the card
+  const cardElement = document.querySelector('.card');
+  if (cardElement) {
+    // Position the dot in the top-right corner of the card
+    cardElement.style.position = 'relative';
+    statusDot.style.position = 'absolute';
+    statusDot.style.top = '10px';
+    statusDot.style.right = '10px';
+    statusDot.style.width = '8px';
+    statusDot.style.height = '8px';
+    statusDot.style.borderRadius = '50%';
+    statusDot.style.backgroundColor = '#888';
+    statusDot.style.transition = 'transform 0.5s ease, background-color 0.3s ease';
+
+    cardElement.appendChild(statusDot);
+  } else {
+    // If no card found, add it near the top of the body
+    statusDot.style.position = 'fixed';
+    statusDot.style.top = '10px';
+    statusDot.style.right = '10px';
+    statusDot.style.width = '8px';
+    statusDot.style.height = '8px';
+    statusDot.style.borderRadius = '50%';
+    statusDot.style.backgroundColor = '#888';
+    statusDot.style.transition = 'transform 0.5s ease, background-color 0.3s ease';
+
+    document.body.appendChild(statusDot);
   }
+
+  return statusDot;
+}
+
+// Update status dot based on connection status
+function updateStatusDot(status) {
+  const statusDot = document.getElementById('status-dot') || createStatusDot();
+
+  if (status === 'connected') {
+    statusDot.style.backgroundColor = '#28a745'; // Green
+    statusDot.title = 'Connected';
+  } else if (status === 'disconnected') {
+    statusDot.style.backgroundColor = '#dc3545'; // Red
+    statusDot.title = 'Disconnected';
+  } else if (status === 'connecting') {
+    statusDot.style.backgroundColor = '#ffc107'; // Yellow
+    statusDot.title = 'Connecting...';
+  }
+}
+
+// Create a pulse effect for the status dot
+function pulseStatusDot() {
+  const statusDot = document.getElementById('status-dot');
+  if (!statusDot) return;
+
+  // Apply pulse animation
+  statusDot.style.transform = 'scale(1.5)';
+
+  // Reset after animation completes
+  setTimeout(() => {
+    statusDot.style.transform = 'scale(1)';
+  }, 500);
 }
 
 function updatePeopleCount(count, time) {
@@ -282,9 +335,20 @@ function selectDay(day) {
   fetchData(day);
 }
 
+// Check connection every 10 seconds
+function checkConnection() {
+  if (isConnected) {
+    const now = Date.now();
+    // If no update for more than 30 seconds, consider connection stale
+    if (now - lastUpdateTime > 30000) {
+      updateStatusDot('disconnected');
+    }
+  }
+}
+
 // Initialize the application
 function initializeApp() {
-  // Add CSS for connection status
+  // Add transition styles for smooth color changes
   const style = document.createElement('style');
   style.textContent = `
     .circular-progress .progress {
@@ -293,43 +357,23 @@ function initializeApp() {
     #mqttReading {
       transition: color 0.6s ease;
     }
-    #connection-status {
-      padding: 5px 10px;
-      border-radius: 4px;
-      font-size: 0.85rem;
-      margin: 10px 0;
-    }
-    .status-connected {
-      background-color: #d4edda;
-      color: #155724;
-    }
-    .status-reconnecting {
-      background-color: #fff3cd;
-      color: #856404;
-    }
-    .status-disconnected {
-      background-color: #f8d7da;
-      color: #721c24;
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.5); }
+      100% { transform: scale(1); }
     }
   `;
   document.head.appendChild(style);
 
-  // Add connection status element if it doesn't exist
-  if (!document.getElementById('connection-status')) {
-    const statusElement = document.createElement('div');
-    statusElement.id = 'connection-status';
-    statusElement.textContent = 'Connection: Initializing...';
-    statusElement.className = 'status-reconnecting';
-
-    // Insert after lastUpdated element
-    const lastUpdated = document.getElementById('lastUpdated');
-    if (lastUpdated && lastUpdated.parentElement) {
-      lastUpdated.parentElement.insertBefore(statusElement, lastUpdated.nextSibling);
-    } else {
-      // Or insert at top of body if lastUpdated not found
-      document.body.insertBefore(statusElement, document.body.firstChild);
-    }
+  // Remove any existing connection status element (from previous version)
+  const oldConnectionStatus = document.getElementById('connection-status');
+  if (oldConnectionStatus) {
+    oldConnectionStatus.remove();
   }
+
+  // Create the status dot
+  createStatusDot();
+  updateStatusDot('connecting');
 
   // Initialize chart
   initializeChart();
@@ -355,6 +399,9 @@ function initializeApp() {
 
   // Initialize WebSocket connection
   connectWebSocket();
+
+  // Set up periodic connection check
+  setInterval(checkConnection, 10000);
 }
 
 // Start the application when DOM is loaded
