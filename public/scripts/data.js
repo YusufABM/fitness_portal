@@ -52,6 +52,8 @@ let reconnectAttempts = 0;
 const maxReconnectAttempts = 5;
 const reconnectDelay = 3000; // 3 seconds
 let lastUpdateTime = Date.now();
+let lastCountChangeTime = ""; // Track when count last changed
+let lastCount = null; // Track the last count value
 
 function connectWebSocket() {
   // Close existing socket if any
@@ -111,8 +113,17 @@ function processWebSocketData(data) {
   const count = countMatch ? parseInt(countMatch[1]) : 0;
   const time = timeMatch ? timeMatch[1] : '';
 
-  // Update UI elements and progress circle with the time from data
-  updatePeopleCount(count, time);
+  // Check if count has changed
+  if (lastCount !== null && count !== lastCount) {
+    lastCountChangeTime = time;
+  }
+
+  // Update last count
+  lastCount = count;
+
+  // Update UI elements and progress circle
+  // Use lastCountChangeTime if available, otherwise use current time
+  updatePeopleCount(count, time, lastCountChangeTime);
 }
 
 // Fallback function to fetch data via HTTP
@@ -199,7 +210,7 @@ function pulseStatusDot() {
   }, 500);
 }
 
-function updatePeopleCount(count, time) {
+function updatePeopleCount(count, time, countChangeTime) {
   const max = 6;
   const circle = document.querySelector('.circular-progress .progress');
   const countElement = document.getElementById('mqttReading');
@@ -225,9 +236,11 @@ function updatePeopleCount(count, time) {
   countElement.textContent = count;
   countElement.style.color = color;
 
-  // Update last updated text if time is provided
-  if (time) {
-    document.getElementById('lastUpdated').textContent = "LAST UPDATED: " + time;
+  // Update last updated text with either the count change time or current time
+  // Use count change time if available, or current time as fallback
+  const displayTime = countChangeTime || time;
+  if (displayTime) {
+    document.getElementById('lastUpdated').textContent = "LAST COUNT CHANGE: " + displayTime;
   }
 }
 
