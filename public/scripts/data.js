@@ -143,6 +143,28 @@ function updateReadingViaHttp() {
     .catch(error => console.error('Error fetching latest data:', error));
 }
 
+// Fetch the last count change information from the server
+function fetchLastCountChange() {
+  fetch('/lastCountChange')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      // Update our local variables with the server data
+      lastCount = data.count;
+      lastCountChangeTime = data.time;
+
+      // Update the UI with this information
+      if (data.time) {
+        document.getElementById('lastUpdated').textContent = "LAST COUNT CHANGE: " + data.time;
+      }
+    })
+    .catch(error => console.error('Error fetching last count change:', error));
+}
+
 // Create status dot
 function createStatusDot() {
   const statusDot = document.createElement('div');
@@ -407,8 +429,11 @@ function initializeApp() {
   // Initialize with default data
   selectDay('Monday');
 
-  // Initial UI setup
+  // Initial UI setup with default values
   updatePeopleCount(0, '');
+
+  // Fetch the last count change from the server immediately
+  fetchLastCountChange();
 
   // Initialize WebSocket connection
   connectWebSocket();

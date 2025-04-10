@@ -17,6 +17,11 @@ const wss = new WebSocket.Server({ server });
 const db = new sqlite3.Database('data/.data.db');
 let latestMessage = " ";
 
+// Add these variables to track count changes
+let lastC = null;
+let lastCountChangeTime = null;
+let lastCountChangeTimestamp = null;
+
 // Directories setup
 let clientDir = path.join(__dirname, 'public');
 let staticDir = path.join(__dirname, 'public');
@@ -37,9 +42,24 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(staticDir));
 
-// Ensure database is created and table is initialized
+// Ensure database is created and tables are initialized
 db.serialize(() => {
   db.run('CREATE TABLE IF NOT EXISTS readings (count INTEGER, day TEXT, timestamp TEXT)');
+
+  // Create a new table to store the last count change time
+  db.run('CREATE TABLE IF NOT EXISTS last_count_change (id INTEGER PRIMARY KEY CHECK (id = 1), count INTEGER, time TEXT, timestamp TEXT)');
+
+  // Initialize with default values if empty
+  db.get('SELECT * FROM last_count_change WHERE id = 1', (err, row) => {
+    if (!row) {
+      db.run('INSERT INTO last_count_change (id, count, time, timestamp) VALUES (1, 0, NULL, NULL)');
+    } else {
+      // Load the last count change info from database
+      lastC = row.count;
+      lastCountChangeTime = row.time;
+      lastCountChangeTimestamp = row.timestamp;
+    }
+  });
 });
 
 // WebSocket connection handling
@@ -84,8 +104,20 @@ function handleDoorTriggerMessage(message) {
   check = messageString.match(/Count: (\d+)/);
   count = parseInt(check[1] || 0);
 
+  // Check if the count has changed
+  const currentTimeString = `${dayOfWeek}, ${date}, ${hour}:${minute}:${second}`;
+  if (count != lastC) {
+    // Update the last count change information
+    lastCountChangeTime = currentTimeString;
+    lastCountChangeTimestamp = timestamp.toISOString();
+
+    // Update in database
+    db.run('UPDATE last_count_change SET count = ?, time = ?, timestamp = ? WHERE id = 1',
+      [count, currentTimeString, timestamp.toISOString()]);
+  }
+
   // Insert data into the database if the count has changed or if the last reading was more than 30 min ago
-  if (count != lastCount || (timestamp.getTime() - lastTimestamp.getTime()) > (1800000)) {
+  if (count != lastC || (timestamp.getTime() - lastTimestamp.getTime()) > (1800000)) {
     insertData();
   }
 
@@ -104,7 +136,7 @@ function insertData() {
     if (err) {
       console.error('Error inserting data into database:', err);
     } else {
-      lastCount = count;
+      lastC = count;
     }
   });
 }
@@ -122,6 +154,22 @@ app.get('/', (request, response) => {
 // Send the latest reading to the client via HTTP if needed
 app.get('/latest', function (req, res) {
   res.send(latestMessage);
+});
+
+// New endpoint to get the last count change time
+app.get('/lastCountChange', function (req, res) {
+  db.get('SELECT * FROM last_count_change WHERE id = 1', (err, row) => {
+    if (err) {
+      console.error('Error getting last count change from database:', err);
+      res.status(500).send('Error getting last count change from database');
+    } else {
+      res.json({
+        count: row.count,
+        time: row.time,
+        timestamp: row.timestamp
+      });
+    }
+  });
 });
 
 // Start the server
