@@ -1,86 +1,79 @@
-const path = require('path')
-const fs = require('fs')
-const express = require('express')
-const app = express()
-const port = 2095
-const mqtt = require('mqtt');
-const { get } = require('http');
+const path = require('path');
+const fs = require('fs');
+const express = require('express');
+const http = require('http');
+const WebSocket = require('ws');
 const sqlite3 = require('sqlite3').verbose();
+
+// Initialize Express app
+const app = express();
+const port = 2095;
+const server = http.createServer(app);
+
+// Initialize WebSocket server
+const wss = new WebSocket.Server({ server });
+
+// Connect to SQLite database
 const db = new sqlite3.Database('data/.data.db');
 let latestMessage = " ";
 
-// Read MQTT connection details from secrets.json
-let mqttConfig;
-try {
-  const secretsPath = path.join(__dirname, 'secrets/secrets.json');
-  const secretsContent = fs.readFileSync(secretsPath);
-  mqttConfig = JSON.parse(secretsContent);
-  //console.log('Loaded MQTT configuration from secrets.json');
-} catch (error) {
-  console.error('Error loading secrets.json:', error);
-  process.exit(1); // Exit if we can't load the secrets
-}
+// Directories setup
+let clientDir = path.join(__dirname, 'public');
+let staticDir = path.join(__dirname, 'public');
 
-let clientDir = path.join(__dirname, 'public')
-let staticDir = path.join(__dirname,'public')
-
-//Time variables
-var count = " "
-var lastCount = " "
-var timeMatch = " "
-var dayOfWeek = " "
-var date = " "
-var hour = " "
-var minute = " "
-var timestamp = " "
+// Time variables
+var count = " ";
+var lastCount = " ";
+var timeMatch = " ";
+var dayOfWeek = " ";
+var date = " ";
+var hour = " ";
+var minute = " ";
+var timestamp = " ";
 var lastTimestamp = new Date(`2024-05-11T22:22:00Z`);
 
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
-app.use(express.static(staticDir))
+// Express middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(staticDir));
 
 // Ensure database is created and table is initialized
 db.serialize(() => {
   db.run('CREATE TABLE IF NOT EXISTS readings (count INTEGER, day TEXT, timestamp TEXT)');
 });
 
-// Construct the MQTT connection URL from the secrets.json
-const mqttUrl = `${mqttConfig.protocol || 'wss'}://${mqttConfig.broker}:${mqttConfig.port}${mqttConfig.path || ''}`;
-const mqttOptions = {
-  username: mqttConfig.username,
-  password: mqttConfig.password,
-  rejectUnauthorized: mqttConfig.ssl !== false
-};
+// WebSocket connection handling
+wss.on('connection', (ws) => {
+  console.log('Client connected');
 
-//console.log(`Connecting to MQTT broker at ${mqttUrl}`);
+  // Send the latest message to newly connected clients
+  if (latestMessage !== " ") {
+    ws.send(latestMessage);
+  }
 
-// Connect to the MQTT broker and subscribe to the topic
-const client = mqtt.connect(mqttUrl, mqttOptions);
+  // Handle incoming messages from door sensor
+  ws.on('message', (message) => {
+    handleDoorTriggerMessage(message);
+  });
 
-client.on('connect', function () {
-  //console.log('Connected to MQTT broker');
-  const topic = mqttConfig.topic || '/doorTrigger/#';
-  client.subscribe(topic, function (err) {
-    if (err) {
-      console.error('Failed to subscribe:', err);
-    } else {
-      //console.log(`Subscribed to topic: ${topic}`);
-    }
+  ws.on('close', () => {
+    console.log('Client disconnected');
+  });
+
+  ws.on('error', (error) => {
+    console.error('WebSocket error:', error);
   });
 });
 
-client.on('error', function(err) {
-  console.error('MQTT connection error:', err);
-});
-
-// When a message is received, update the latestMessage variable and insert data into the database
-client.on('message', function (topic, message) {
+// Function to handle door trigger messages
+function handleDoorTriggerMessage(message) {
   latestMessage = message.toString();
   var messageString = message.toString();
 
   // Parse the message to extract count, day, date, and time
   timeMatch = messageString.match(/Time: (\w+), (\d{2}).(\d{2}).(\d{2}), (\d{2}):(\d{2}):(\d{2})/);
   if (timeMatch == null) return console.error('Invalid message format');
+
   dayOfWeek = timeMatch[1];
   date = `${timeMatch[2]}.${timeMatch[3]}.${timeMatch[4]}`;
   hour = timeMatch[5];
@@ -93,9 +86,16 @@ client.on('message', function (topic, message) {
 
   // Insert data into the database if the count has changed or if the last reading was more than 30 min ago
   if (count != lastCount || (timestamp.getTime() - lastTimestamp.getTime()) > (1800000)) {
-    //insertData();
+    insertData();
   }
-});
+
+  // Broadcast the message to all connected clients
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(latestMessage);
+    }
+  });
+}
 
 // Insert data into the database
 function insertData() {
@@ -109,26 +109,25 @@ function insertData() {
   });
 }
 
-//app root
-app.get('/', rootHandler)
-
-function rootHandler(request, response) {
-  //Need to add an error check!
+// App routes
+app.get('/', (request, response) => {
   response.sendFile(path.join(staticDir, "index.html"), (err) => {
     if (err) {
       console.error("Error sending file", err);
       response.status(err.status || 500).send("Error sending file");
     }
   });
-}
+});
 
-app.listen(port, () => {
-  //console.log(`Vilhelm Kiers Motionsrum page is running on ${port}`)
-})
-
-// Send the latest reading to the client
+// Send the latest reading to the client via HTTP if needed
 app.get('/latest', function (req, res) {
   res.send(latestMessage);
+});
+
+// Start the server
+server.listen(port, () => {
+  console.log(`Vilhelm Kiers Motionsrum page is running on port ${port}`);
+  console.log(`WebSocket server available at wss://vkmotion.site`);
 });
 
 app.get('/database', function (req, res) {

@@ -45,8 +45,77 @@ function hexToRgb(hex) {
   } : { r: 0, g: 0, b: 0 };
 }
 
-// Centralized function to fetch and process data
-function updateReading() {
+// Initialize WebSocket connection
+let socket;
+let isConnected = false;
+let reconnectAttempts = 0;
+const maxReconnectAttempts = 5;
+const reconnectDelay = 3000; // 3 seconds
+
+function connectWebSocket() {
+  // Close existing socket if any
+  if (socket) {
+    socket.close();
+  }
+
+  // Create new WebSocket connection
+  socket = new WebSocket(`wss://vkmotion.site`);
+
+  // Connection opened
+  socket.addEventListener('open', (event) => {
+    console.log('WebSocket connection established');
+    isConnected = true;
+    reconnectAttempts = 0;
+    updateConnectionStatus('Connected');
+  });
+
+  // Listen for messages
+  socket.addEventListener('message', (event) => {
+    const data = event.data;
+    processWebSocketData(data);
+  });
+
+  // Connection closed
+  socket.addEventListener('close', (event) => {
+    isConnected = false;
+    updateConnectionStatus('Disconnected');
+
+    // Attempt to reconnect if not max attempts reached
+    if (reconnectAttempts < maxReconnectAttempts) {
+      reconnectAttempts++;
+      updateConnectionStatus(`Reconnecting (${reconnectAttempts}/${maxReconnectAttempts})...`);
+      setTimeout(connectWebSocket, reconnectDelay);
+    } else {
+      updateConnectionStatus('Connection failed. Falling back to HTTP.');
+      // Fall back to HTTP polling
+      setInterval(updateReadingViaHttp, 5000);
+    }
+  });
+
+  // Connection error
+  socket.addEventListener('error', (event) => {
+    console.error('WebSocket error:', event);
+    updateConnectionStatus('Error connecting');
+  });
+}
+
+// Process data from WebSocket
+function processWebSocketData(data) {
+  // Parse the message
+  const countRegex = /Count: (\d+)/;
+  const timeRegex = /Time: (.+)/;
+  const countMatch = data.match(countRegex);
+  const timeMatch = data.match(timeRegex);
+
+  const count = countMatch ? parseInt(countMatch[1]) : 0;
+  const time = timeMatch ? timeMatch[1] : '';
+
+  // Update UI elements and progress circle with the time from data
+  updatePeopleCount(count, time);
+}
+
+// Fallback function to fetch data via HTTP
+function updateReadingViaHttp() {
   fetch('/latest')
     .then(response => {
       if (!response.ok) {
@@ -55,19 +124,26 @@ function updateReading() {
       return response.text();
     })
     .then(data => {
-      // Parse the MQTT message
-      const countRegex = /Count: (\d+)/;
-      const timeRegex = /Time: (.+)/;
-      const countMatch = data.match(countRegex);
-      const timeMatch = data.match(timeRegex);
-
-      const count = countMatch ? parseInt(countMatch[1]) : 0;
-      const time = timeMatch ? timeMatch[1] : '';
-
-      // Update UI elements and progress circle with the time from data
-      updatePeopleCount(count, time);
+      processWebSocketData(data); // Reuse the same processing function
     })
     .catch(error => console.error('Error fetching latest data:', error));
+}
+
+// Update connection status indicator
+function updateConnectionStatus(status) {
+  const connectionStatus = document.getElementById('connection-status');
+  if (connectionStatus) {
+    connectionStatus.textContent = `Connection: ${status}`;
+
+    // Update color based on status
+    if (status.includes('Connected')) {
+      connectionStatus.className = 'status-connected';
+    } else if (status.includes('Reconnecting')) {
+      connectionStatus.className = 'status-reconnecting';
+    } else {
+      connectionStatus.className = 'status-disconnected';
+    }
+  }
 }
 
 function updatePeopleCount(count, time) {
@@ -147,7 +223,6 @@ function initializeChart() {
 
 // Fetch and process data for a specific day
 function fetchData(day) {
-  //console.log(`Fetching data for: ${day}`);
   fetch('/' + day.toLowerCase())
     .then(response => {
       if (!response.ok) {
@@ -156,8 +231,6 @@ function fetchData(day) {
       return response.json();
     })
     .then(data => {
-      //console.log(`Data received for ${day}:`, data);
-
       // Create block containers for the 5 time periods (8-11, 11-14, etc.)
       const blockCounts = Array(5).fill().map(() => []);
 
@@ -211,7 +284,7 @@ function selectDay(day) {
 
 // Initialize the application
 function initializeApp() {
-  // Add transition style for smooth color changes
+  // Add CSS for connection status
   const style = document.createElement('style');
   style.textContent = `
     .circular-progress .progress {
@@ -220,8 +293,43 @@ function initializeApp() {
     #mqttReading {
       transition: color 0.6s ease;
     }
+    #connection-status {
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      margin: 10px 0;
+    }
+    .status-connected {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .status-reconnecting {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    .status-disconnected {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
   `;
   document.head.appendChild(style);
+
+  // Add connection status element if it doesn't exist
+  if (!document.getElementById('connection-status')) {
+    const statusElement = document.createElement('div');
+    statusElement.id = 'connection-status';
+    statusElement.textContent = 'Connection: Initializing...';
+    statusElement.className = 'status-reconnecting';
+
+    // Insert after lastUpdated element
+    const lastUpdated = document.getElementById('lastUpdated');
+    if (lastUpdated && lastUpdated.parentElement) {
+      lastUpdated.parentElement.insertBefore(statusElement, lastUpdated.nextSibling);
+    } else {
+      // Or insert at top of body if lastUpdated not found
+      document.body.insertBefore(statusElement, document.body.firstChild);
+    }
+  }
 
   // Initialize chart
   initializeChart();
@@ -242,11 +350,11 @@ function initializeApp() {
   // Initialize with default data
   selectDay('Monday');
 
-  // Set up interval for regular updates (every second)
-  setInterval(updateReading, 1000);
-
   // Initial UI setup
   updatePeopleCount(0, '');
+
+  // Initialize WebSocket connection
+  connectWebSocket();
 }
 
 // Start the application when DOM is loaded
