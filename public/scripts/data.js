@@ -161,6 +161,9 @@ function fetchLastCountChange() {
       if (data.time) {
         document.getElementById('lastUpdated').textContent = "LAST COUNT CHANGE: " + data.time;
       }
+
+      // Update the count display with the latest value from server
+      updatePeopleCount(data.count, data.time, data.time);
     })
     .catch(error => console.error('Error fetching last count change:', error));
 }
@@ -429,9 +432,6 @@ function initializeApp() {
   // Initialize with default data
   selectDay('Monday');
 
-  // Initial UI setup with default values
-  updatePeopleCount(0, '');
-
   // Fetch the last count change from the server immediately
   fetchLastCountChange();
 
@@ -440,6 +440,9 @@ function initializeApp() {
 
   // Set up periodic connection check
   setInterval(checkConnection, 10000);
+
+  // Add debug logging to help troubleshoot WebSocket issues
+  console.log("Application initialized, WebSocket connecting to wss://vkmotion.site");
 }
 
 // Start the application when DOM is loaded
