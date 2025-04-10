@@ -267,7 +267,7 @@ function updatePeopleCount(count, time, countChangeTime) {
   // Use count change time if available, or current time as fallback
   const displayTime = countChangeTime || time;
   if (displayTime) {
-    document.getElementById('lastUpdated').textContent = "LAST COUNT CHANGE: " + displayTime;
+    document.getElementById('lastUpdated').textContent = "LAST COUNT : " + displayTime;
   }
 }
 
