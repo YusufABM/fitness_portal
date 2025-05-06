@@ -2,7 +2,7 @@
 let lastUpdateTime = Date.now();
 let lastCountChangeTime = "";
 let lastCount = null;
-const pollingInterval = 30000; // Check for updates every 30 seconds
+const pollingInterval = 2000; // Check for updates every 2 seconds
 
 // Process data from the lastCountChange endpoint
 function processCountChangeData(data) {
