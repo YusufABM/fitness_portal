@@ -2,46 +2,32 @@
 let lastUpdateTime = Date.now();
 let lastCountChangeTime = "";
 let lastCount = null;
-const pollingInterval = 2000;
+const pollingInterval = 30000; // Check for updates every 30 seconds
 
 // Process data from the lastCountChange endpoint
 function processCountChangeData(data) {
   if (!data) return;
 
-  // Only update if the count or time has changed
-  if (data.count !== lastCount || data.time !== lastCountChangeTime) {
-    console.log('Count updated:', data.count, 'Previous:', lastCount);
+  // Update last count and time
+  lastCount = data.count;
+  lastCountChangeTime = data.time;
+  lastUpdateTime = Date.now();
 
-    // Update last count and time
-    lastCount = data.count;
-    lastCountChangeTime = data.time;
-    lastUpdateTime = Date.now();
-
-    // Update UI elements and progress circle
-    updatePeopleCount(data.count, data.time, data.time);
-    pulseStatusDot('updated');
-
-    // Log update for debugging
-    console.log('UI updated with new count:', data.count, 'at time:', data.time);
-  } else {
-    console.log('No change in count data detected');
-  }
+  // Update UI elements and progress circle
+  updatePeopleCount(data.count, data.time, data.time);
+  pulseStatusDot('updated');
 }
 
 // Fetch the last count change information from the server
 function fetchLastCountChange() {
-  console.log('Fetching latest count data...');
-
   fetch('/lastCountChange')
     .then(response => {
       if (!response.ok) {
-        throw new Error('Network response was not ok: ' + response.status);
+        throw new Error('Network response was not ok');
       }
       return response.json();
     })
     .then(data => {
-      console.log('Received data:', data);
-
       // Process the data
       processCountChangeData(data);
 
@@ -122,8 +108,6 @@ function pulseStatusDot(status) {
 }
 
 function updatePeopleCount(count, time, countChangeTime) {
-  console.log('Updating UI with count:', count);
-
   const max = 10;
   const circle = document.querySelector('.circular-progress .progress');
   const countElement = document.getElementById('mqttReading');
@@ -138,31 +122,20 @@ function updatePeopleCount(count, time, countChangeTime) {
   const color = getColorForCount(normalizedCount, max);
 
   // Update circle progress
-  if (circle) {
-    if (normalizedCount === 0) {
-      circle.style.strokeDashoffset = `${circumference}`; // Full circumference for no progress
-    } else {
-      circle.style.strokeDashoffset = `${circumference - (progress * circumference)}`;
-    }
-    circle.style.stroke = color;
+  if (normalizedCount === 0) {
+    circle.style.strokeDashoffset = `${circumference}`; // Full circumference for no progress
   } else {
-    console.error('Circle progress element not found');
+    circle.style.strokeDashoffset = `${circumference - (progress * circumference)}`;
   }
+  circle.style.stroke = color;
 
   // Update count text
-  if (countElement) {
-    countElement.textContent = count;
-    countElement.style.color = color;
-  } else {
-    console.error('Count element not found');
-  }
+  countElement.textContent = count;
+  countElement.style.color = color;
 
   // Update last updated text
-  const lastUpdatedElement = document.getElementById('lastUpdated');
-  if (lastUpdatedElement && countChangeTime) {
-    lastUpdatedElement.textContent = "LAST COUNT: " + countChangeTime;
-  } else if (!lastUpdatedElement) {
-    console.error('Last updated element not found');
+  if (countChangeTime) {
+    document.getElementById('lastUpdated').textContent = "LAST COUNT: " + countChangeTime;
   }
 }
 
@@ -309,11 +282,7 @@ function initializeApp() {
   updateStatusDot('connecting');
 
   // Initialize chart
-  if (document.querySelector("#chart-timeline")) {
-    initializeChart();
-  } else {
-    console.warn('Chart element not found, skipping chart initialization');
-  }
+  initializeChart();
 
   // Set up day selection event listeners
   document.querySelectorAll('.day-tabs .nav-link').forEach(button => {
@@ -324,62 +293,27 @@ function initializeApp() {
   });
 
   // Add event listener to dropdown
-  const daySelect = document.getElementById('daySelect');
-  if (daySelect) {
-    daySelect.addEventListener('change', function() {
-      selectDay(this.value.charAt(0).toUpperCase() + this.value.slice(1));
-    });
+  document.getElementById('daySelect').addEventListener('change', function() {
+    selectDay(this.value.charAt(0).toUpperCase() + this.value.slice(1));
+  });
 
-    // Initialize with default data
-    selectDay('Monday');
-  } else {
-    console.warn('Day select dropdown not found');
-  }
+  // Initialize with default data
+  selectDay('Monday');
 
   // Fetch the last count change from the server immediately
   fetchLastCountChange();
 
   // Set up periodic polling for updates
-  const updateIntervalId = setInterval(fetchLastCountChange, pollingInterval);
-  console.log('Update interval started, checking every', pollingInterval/1000, 'seconds');
+  setInterval(fetchLastCountChange, pollingInterval);
 
   // Add event listener for page visibility changes
   document.addEventListener('visibilitychange', function() {
     if (!document.hidden) {
       // When page becomes visible again, fetch the latest data
-      console.log('Page became visible, fetching latest data');
       fetchLastCountChange();
     }
   });
-
-  // For debugging - expose key functions to global scope
-  window.debugFetchData = fetchLastCountChange;
-  window.debugUpdateInterval = pollingInterval;
 }
 
 // Start the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', initializeApp);
-
-// Add a manual refresh button for testing/emergency use
-function addManualRefreshButton() {
-  const refreshButton = document.createElement('button');
-  refreshButton.textContent = 'Refresh Data';
-  refreshButton.style.position = 'fixed';
-  refreshButton.style.bottom = '10px';
-  refreshButton.style.right = '10px';
-  refreshButton.style.padding = '5px 10px';
-  refreshButton.style.backgroundColor = '#012970';
-  refreshButton.style.color = 'white';
-  refreshButton.style.border = 'none';
-  refreshButton.style.borderRadius = '4px';
-  refreshButton.style.cursor = 'pointer';
-
-  refreshButton.addEventListener('click', function() {
-    console.log('Manual refresh triggered');
-    fetchLastCountChange();
-  });
-
-  document.body.appendChild(refreshButton);
-}
-
-// document.addEventListener('DOMContentLoaded', () => setTimeout(addManualRefreshButton, 1000));
