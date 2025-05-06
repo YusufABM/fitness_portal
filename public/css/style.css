@@ -98,7 +98,7 @@ h2{
   right: 15px;
   bottom: 15px;
   z-index: 99999;
-  background: #4154f1;
+  background: #012970;
   width: 40px;
   height: 40px;
   border-radius: 4px;
@@ -112,7 +112,7 @@ h2{
 }
 
 .back-to-top:hover {
-  background: #6776f4;
+  background: #000105;
   color: #fff;
 }
 
@@ -651,13 +651,7 @@ h2{
   background-color: #aab7cf;
 }
 
-@media (min-width: 1200px) {
 
-  #main,
-  #footer {
-    margin-left: 300px;
-  }
-}
 
 @media (max-width: 1199px) {
   .toggle-sidebar .sidebar {
@@ -1226,11 +1220,7 @@ h2{
   background: #3e4f6f;
 }
 
-@media (min-width: 992px) {
-  .error-404 img {
-    max-width: 50%;
-  }
-}
+
 
 /*--------------------------------------------------------------
 # Footer
@@ -1256,12 +1246,7 @@ h2{
 
 
 
-/* Center cards on larger screens */
-@media (min-width: 1200px) {
-  .dashboard .row {
-    justify-content: center;
-  }
-}
+
 
 .circular-progress {
   display: block;
@@ -1317,7 +1302,7 @@ h2{
       }
 
       .day-tabs .nav-link.active {
-        background-color: #adadad; /* Black background for active button */
+        background-color: #012970; /* Black background for active button */
         color: #ffffff;
       }
 
